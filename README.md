@@ -7,14 +7,14 @@ Mod für die **Satisfactory: TimingUp!**
 | Regel | Umsetzung |
 |---|---|
 | Upgrade = HUB-Meilenstein (auch Tier 0), MAM-Forschung, Weltraumaufzug-Phase | wird beim Freischalten gezählt |
-| Max. 30 Upgrades | danach kein Upgrade mehr möglich |
+| Max. 40 Upgrades (einstellbar) | danach kein Upgrade mehr möglich |
 | Nur Spielzeit zählt | Timer läuft nur, wenn das Spiel nicht pausiert ist |
-| Erstes Upgrade nach 1 Minute, jede Wartezeit ×1,2 | `BaseWaitSeconds = 60`, `WaitFactor = 1.2` |
+| Erstes Upgrade nach 5 Minuten, jede Wartezeit ×1,12, höchstens 10 h | einstellbar (siehe Einstellungen) |
 | Timer zum nächsten Upgrade startet erst, wenn das freie Upgrade ausgegeben wurde | Timer pausiert im Zustand „Upgrade frei“ |
-| Ende, wenn die theoretische Zeit von Upgrade 31 erreicht ist | danach ist alles gesperrt, Anzeige „CHALLENGE VORBEI!“ |
+| Ende, wenn die theoretische Zeit von Upgrade 41 erreicht ist | danach ist alles gesperrt, Anzeige „CHALLENGE VORBEI!“ |
 | Keine Alternativrezepte | Festplatten-Forschung und Alternativrezepte sind blockiert |
 
-Oben in der Bildschirmmitte zeigt ein Overlay Upgrades (x/30), Spielzeit und den Countdown an – praktisch auch für die Aufnahme.
+Oben in der Bildschirmmitte zeigt ein Overlay Upgrades (x/40), Spielzeit und den Countdown an – praktisch auch für die Aufnahme.
 Der Fortschritt wird im Spielstand gespeichert.
 
 **Gesperrt, solange kein Upgrade frei ist:** Meilenstein im HUB auswählen und bezahlen, MAM-Forschung starten, in den Weltraumaufzug einzahlen.
@@ -53,7 +53,7 @@ Den Satisfactory Mod Manager gibt es auch für Linux. Die Mod kommt nach `~/.loc
 
 Startoption **`-TimingUpTest`** hinzufügen (Steam → Satisfactory → Eigenschaften → Startoptionen).
 Dann läuft der Timer **60-mal schneller** und das Overlay zeigt `[TESTMODUS x60]`.
-Die komplette Challenge (~23,6 h Timer) ist so in rund 24 Minuten durchgetestet.
+Die komplette Challenge (~72 h Timer) ist so in rund 72 Minuten durchgetestet.
 **Für die echte Aufnahme die Startoption wieder entfernen!** Und immer einen eigenen Test-Spielstand nehmen.
 
 Test-Checkliste:
@@ -64,7 +64,7 @@ Test-Checkliste:
 - [ ] MAM-Forschung und Weltraumaufzug sind ohne freies Upgrade gesperrt
 - [ ] Festplatten / Alternativrezepte sind gesperrt
 - [ ] Nach Speichern + Neuladen stimmt der Stand
-- [ ] Nach Upgrade 30 läuft der End-Countdown, danach „CHALLENGE VORBEI!“
+- [ ] Nach dem letzten Upgrade läuft der End-Countdown, danach „CHALLENGE VORBEI!“
 
 ## Einstellungen im Spiel
 
@@ -76,9 +76,11 @@ Hauptmenü → **Mods** → **TimingUp!** → Konfiguration. Änderungen gelten 
 | Anzeige: Position links/rechts (%) | 50 | 0 = links, 50 = Mitte, 100 = rechts |
 | Anzeige: Position oben/unten (%) | 2 | 0 = oben, 100 = unten |
 | Anzeige: Schriftgröße | 18 | |
-| Maximale Upgrades | 30 | Ende = Countdown von Upgrade „Max + 1“ abgelaufen |
-| Erste Wartezeit (Minuten) | 1 | |
-| Wartezeit-Faktor | 1,2 | jede Wartezeit ×1,2 |
+| Maximale Upgrades | 40 | Ende = Countdown von Upgrade „Max + 1“ abgelaufen |
+| Erste Wartezeit (Minuten) | 5 | |
+| Wartezeit-Faktor | 1,12 | jede Wartezeit ×1,12 |
+| Faktor-Abnahme pro Upgrade | 0 | Faktor sinkt pro Upgrade um diesen Wert (z. B. 0,002), nie unter 1 |
+| Maximale Wartezeit (Stunden) | 10 | keine Wartezeit wird länger; 0 = keine Grenze |
 | Tier 0 nicht zählen | an | HUB-Upgrades aus Tier 0 sind frei (Tipp: neuen Spielstand mit „Onboarding überspringen“ starten) |
 | Alternativrezepte sperren | an | Festplatten/Alternativrezepte gesperrt |
 | Testmodus: Zeit-Beschleunigung | 1 | z. B. 60 zum Testen – für Aufnahmen auf 1 lassen! |

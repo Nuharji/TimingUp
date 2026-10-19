@@ -49,7 +49,18 @@ int32 ATimingUpSubsystem::GetMaxUpgrades() const
 
 float ATimingUpSubsystem::GetWaitForUpgrade(int32 UpgradeNumber) const
 {
-	return FTimingUpConfig::FirstWaitSeconds(this) * FMath::Pow(FTimingUpConfig::WaitFactor(this), FMath::Max(0, UpgradeNumber - 1));
+	// Wait 1 = first wait; every following wait = previous wait x factor,
+	// where the factor shrinks by "factor decrease" per upgrade (never below 1)
+	const float Factor = FTimingUpConfig::WaitFactor(this);
+	const float Decrease = FTimingUpConfig::FactorDecrease(this);
+	const float MaxWait = FTimingUpConfig::MaxWaitSeconds(this);
+	double Wait = FTimingUpConfig::FirstWaitSeconds(this);
+	for (int32 i = 0; i < UpgradeNumber - 1; ++i)
+	{
+		Wait *= FMath::Max(1.0, (double)Factor - (double)Decrease * i);
+		if (MaxWait > 0.f && Wait >= MaxWait) break;
+	}
+	return MaxWait > 0.f ? FMath::Min((float)Wait, MaxWait) : (float)Wait;
 }
 
 void ATimingUpSubsystem::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

@@ -17,6 +17,8 @@ const FString FTimingUpConfig::KeyOverlayFontSize  = TEXT("OverlayFontSize");
 const FString FTimingUpConfig::KeyMaxUpgrades      = TEXT("MaxUpgrades");
 const FString FTimingUpConfig::KeyFirstWaitMinutes = TEXT("FirstWaitMinutes");
 const FString FTimingUpConfig::KeyWaitFactor       = TEXT("WaitFactor");
+const FString FTimingUpConfig::KeyFactorDecrease  = TEXT("FactorDecrease");
+const FString FTimingUpConfig::KeyMaxWaitHours    = TEXT("MaxWaitHours");
 const FString FTimingUpConfig::KeySkipTier0        = TEXT("SkipTier0");
 const FString FTimingUpConfig::KeyBlockAlternates  = TEXT("BlockAlternates");
 const FString FTimingUpConfig::KeyTimeScale        = TEXT("TimeScale");
@@ -116,9 +118,11 @@ void FTimingUpConfig::Register(UGameInstance* GameInstance)
 	AddInt  (Root, KeyOverlayFontSize, 18, 8, 72, TEXT("Anzeige: Schriftgröße"), TEXT("Schriftgröße der Anzeige."));
 
 	// --- Challenge
-	AddInt  (Root, KeyMaxUpgrades, 30, 1, 200, TEXT("Maximale Upgrades"), TEXT("Wie viele Upgrades es insgesamt gibt. Die Challenge endet, wenn der Countdown für das Upgrade danach abläuft."));
-	AddFloat(Root, KeyFirstWaitMinutes, 1.f, 0.1f, 600.f, TEXT("Erste Wartezeit (Minuten)"), TEXT("Wartezeit bis zum ersten Upgrade."));
-	AddFloat(Root, KeyWaitFactor, 1.2f, 1.f, 5.f, TEXT("Wartezeit-Faktor"), TEXT("Jede Wartezeit ist so viel Mal länger als die vorherige (1,2 = +20 %)."));
+	AddInt  (Root, KeyMaxUpgrades, 40, 1, 200, TEXT("Maximale Upgrades"), TEXT("Wie viele Upgrades es insgesamt gibt. Die Challenge endet, wenn der Countdown für das Upgrade danach abläuft."));
+	AddFloat(Root, KeyFirstWaitMinutes, 5.f, 0.1f, 600.f, TEXT("Erste Wartezeit (Minuten)"), TEXT("Wartezeit bis zum ersten Upgrade."));
+	AddFloat(Root, KeyWaitFactor, 1.12f, 1.f, 5.f, TEXT("Wartezeit-Faktor"), TEXT("Jede Wartezeit ist so viel Mal länger als die vorherige (1,12 = +12 %)."));
+	AddFloat(Root, KeyFactorDecrease, 0.f, 0.f, 0.1f, TEXT("Faktor-Abnahme pro Upgrade"), TEXT("Der Faktor sinkt bei jedem Upgrade um diesen Wert (z. B. 0,002), nie unter 1. 0 = fester Faktor."));
+	AddFloat(Root, KeyMaxWaitHours, 10.f, 0.f, 200.f, TEXT("Maximale Wartezeit (Stunden)"), TEXT("Keine Wartezeit wird länger als dieser Wert. 0 = keine Grenze."));
 	AddBool (Root, KeySkipTier0, true, TEXT("Tier 0 nicht zählen"), TEXT("HUB-Upgrades aus Tier 0 sind frei und zählen nicht als Upgrade. Tipp: Beim Erstellen des Spielstands \"Onboarding überspringen\" wählen."));
 	AddBool (Root, KeyBlockAlternates, true, TEXT("Alternativrezepte sperren"), TEXT("Festplatten-Forschung und Alternativrezepte sind gesperrt."));
 

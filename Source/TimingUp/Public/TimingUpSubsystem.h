@@ -13,7 +13,7 @@ enum class ETimingUpState : uint8
 	Waiting,
 	/** An upgrade is available and waiting to be spent; the countdown is paused */
 	UpgradeAvailable,
-	/** All 30 upgrades are used and the countdown to the theoretical upgrade 31 is running */
+	/** All upgrades are used and the countdown to the theoretical upgrade Max+1 is running */
 	FinalCountdown,
 	/** The theoretical time of upgrade 31 was reached: the challenge is over */
 	Finished
@@ -24,12 +24,13 @@ enum class ETimingUpState : uint8
  *
  * Rules:
  *  - An "upgrade" is: a HUB milestone (incl. tier 0), a MAM research, a space elevator phase.
- *  - At most N upgrades (setting, default 30).
+ *  - At most N upgrades (setting, default 40).
  *  - Only game time counts (actors don't tick while the game is paused or loading).
- *  - The first upgrade becomes available after the first wait time (setting, default 1 min).
- *    Every following wait is "wait factor" (setting, default 1.2) times longer.
+ *  - The first upgrade becomes available after the first wait time (setting, default 5 min).
+ *    Every following wait is "wait factor" (setting, default 1.12) times longer;
+ *    the factor can shrink per upgrade and each wait can be capped (settings).
  *  - The countdown to the next upgrade only starts once the currently available upgrade was spent.
- *  - The challenge ends when the countdown of the theoretical upgrade 31 runs out.
+ *  - The challenge ends when the countdown of the theoretical upgrade Max+1 runs out.
  *  - Alternate recipes are forbidden (hard drive research and alternate schematics are blocked).
  */
 UCLASS()
@@ -45,7 +46,7 @@ public:
 	/** 1.0 normally; faster with -TimingUpTest or the test-mode setting */
 	float GetTimeScale() const;
 
-	/** Max upgrades from the mod settings (default 30) */
+	/** Max upgrades from the mod settings (default 40) */
 	int32 GetMaxUpgrades() const;
 
 	/** Returns the subsystem for the given world, or nullptr */

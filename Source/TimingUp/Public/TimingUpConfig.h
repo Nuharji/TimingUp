@@ -28,6 +28,8 @@ struct TIMINGUP_API FTimingUpConfig
 	static const FString KeyMaxUpgrades;
 	static const FString KeyFirstWaitMinutes;
 	static const FString KeyWaitFactor;
+	static const FString KeyFactorDecrease;
+	static const FString KeyMaxWaitHours;
 	static const FString KeySkipTier0;
 	static const FString KeyBlockAlternates;
 	static const FString KeyTimeScale;
@@ -44,9 +46,12 @@ struct TIMINGUP_API FTimingUpConfig
 	static float OverlayX(const UObject* C)         { return FMath::Clamp(GetFloat(C, KeyOverlayX, 50.f), 0.f, 100.f) / 100.f; }
 	static float OverlayY(const UObject* C)         { return FMath::Clamp(GetFloat(C, KeyOverlayY, 2.f), 0.f, 100.f) / 100.f; }
 	static int32 OverlayFontSize(const UObject* C)  { return FMath::Clamp(GetInt(C, KeyOverlayFontSize, 18), 8, 72); }
-	static int32 MaxUpgrades(const UObject* C)      { return FMath::Max(1, GetInt(C, KeyMaxUpgrades, 30)); }
-	static float FirstWaitSeconds(const UObject* C) { return FMath::Max(1.f, GetFloat(C, KeyFirstWaitMinutes, 1.f) * 60.f); }
-	static float WaitFactor(const UObject* C)       { return FMath::Max(1.f, GetFloat(C, KeyWaitFactor, 1.2f)); }
+	static int32 MaxUpgrades(const UObject* C)      { return FMath::Max(1, GetInt(C, KeyMaxUpgrades, 40)); }
+	static float FirstWaitSeconds(const UObject* C) { return FMath::Max(1.f, GetFloat(C, KeyFirstWaitMinutes, 5.f) * 60.f); }
+	static float WaitFactor(const UObject* C)       { return FMath::Max(1.f, GetFloat(C, KeyWaitFactor, 1.12f)); }
+	static float FactorDecrease(const UObject* C)   { return FMath::Max(0.f, GetFloat(C, KeyFactorDecrease, 0.f)); }
+	/** 0 = no limit */
+	static float MaxWaitSeconds(const UObject* C)   { return FMath::Max(0.f, GetFloat(C, KeyMaxWaitHours, 10.f) * 3600.f); }
 	static bool  SkipTier0(const UObject* C)        { return GetBool(C, KeySkipTier0, true); }
 	static bool  BlockAlternates(const UObject* C)  { return GetBool(C, KeyBlockAlternates, true); }
 	static float TimeScale(const UObject* C)        { return FMath::Clamp(GetFloat(C, KeyTimeScale, 1.f), 1.f, 1000.f); }
