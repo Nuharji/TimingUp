@@ -43,6 +43,12 @@ Einmalig einrichten:
 5. **Actions → Mod bauen → Run workflow**. Der erste Lauf dauert lange (1–3 h), danach geht's schneller.
 6. Die fertige Mod liegt unten im Lauf unter **Artifacts → TimingUp-Windows**. Den Inhalt nach `Satisfactory/FactoryGame/Mods/TimingUp` entpacken (SML muss installiert sein, z. B. über den Satisfactory Mod Manager).
 
+## Linux / Steam Deck / Bazzite
+
+Satisfactory gibt es auf dem Linux-Desktop nur als Windows-Version über **Proton** – deshalb funktioniert die **Windows-Mod** dort genauso.
+Den Satisfactory Mod Manager gibt es auch für Linux. Die Mod kommt nach `~/.local/share/Steam/steamapps/common/Satisfactory/FactoryGame/Mods/TimingUp`
+(bei Flatpak-Steam unter `~/.var/app/com.valvesoftware.Steam/...`). Die Startoption `-TimingUpTest` funktioniert unter Proton genauso.
+
 ## Testmodus
 
 Startoption **`-TimingUpTest`** hinzufügen (Steam → Satisfactory → Eigenschaften → Startoptionen).

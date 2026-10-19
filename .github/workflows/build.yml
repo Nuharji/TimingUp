@@ -148,7 +148,9 @@ jobs:
 
       - name: Mod packen (Windows)
         run: |
-          ulimit -n 1048576
+          # Zen braucht ein hohes Datei-Limit; auf GitHub-Runnern geht das nur über sudo prlimit
+          sudo prlimit --pid $$ --nofile=1048576:1048576 || ulimit -n "$(ulimit -Hn)"
+          ulimit -n
           $WORK/ue/Engine/Build/BatchFiles/RunUAT.sh -ScriptsForProject="$WORK/SML/FactoryGame.uproject" PackagePlugin \
             -Project="$WORK/SML/FactoryGame.uproject" -dlcname=TimingUp -merge -build \
             -clientconfig=Shipping -platform=Win64 -nocompileeditor -installed
