@@ -30,6 +30,19 @@ Die Mod ist C++-Code für den **Satisfactory Mod Loader (SML) 3.12+**. Zum Kompi
 
 > ⚠️ Der Code wurde gegen die aktuellen SML-/FactoryGame-Header geschrieben, aber noch **nicht kompiliert oder im Spiel getestet**. Beim ersten Bauen bitte Compiler-Fehler und das Log (`FactoryGame.log`, Suche nach `[TimingUp]`) prüfen.
 
+## Online bauen (GitHub Actions)
+
+Der Workflow `.github/workflows/build.yml` baut die Mod automatisch auf GitHub, ohne Visual Studio oder Unreal auf dem eigenen PC.
+Einmalig einrichten:
+
+1. **Engine-Zugang:** GitHub-Account mit dem Epic-Games-Account verknüpfen und unter <https://linker.ficsit.app/link> freischalten (wie in der Modding-Anleitung).
+2. **Token:** GitHub → Settings → Developer settings → Personal access tokens → *Tokens (classic)* → Scope **repo** → kopieren.
+3. **Audiokinetic-Konto** (kostenlos) auf audiokinetic.com anlegen (für Wwise).
+4. Im Repo unter **Settings → Secrets and variables → Actions** drei Secrets anlegen:
+   `UE_GH_TOKEN` (Token aus Schritt 2), `WWISE_EMAIL`, `WWISE_PASSWORD`.
+5. **Actions → Mod bauen → Run workflow**. Der erste Lauf dauert lange (1–3 h), danach geht's schneller.
+6. Die fertige Mod liegt unten im Lauf unter **Artifacts → TimingUp-Windows**. Den Inhalt nach `Satisfactory/FactoryGame/Mods/TimingUp` entpacken (SML muss installiert sein, z. B. über den Satisfactory Mod Manager).
+
 ## Testmodus
 
 Startoption **`-TimingUpTest`** hinzufügen (Steam → Satisfactory → Eigenschaften → Startoptionen).
