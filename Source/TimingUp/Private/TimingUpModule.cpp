@@ -12,14 +12,19 @@
 
 namespace TimingUp
 {
-	/** HUB milestones (incl. tier 0) and MAM research count as upgrades */
+	/**
+	 * HUB milestones (incl. tier 0) and MAM research count as upgrades.
+	 * Only schematics that actually cost something count: free "background unlock"
+	 * schematics that the game grants automatically alongside a milestone are ignored.
+	 */
 	static bool IsUpgradeSchematic(TSubclassOf<UFGSchematic> Schematic)
 	{
 		if (!Schematic) return false;
 		const ESchematicType Type = UFGSchematic::GetType(Schematic);
-		return Type == ESchematicType::EST_Milestone
+		const bool bUpgradeType = Type == ESchematicType::EST_Milestone
 			|| Type == ESchematicType::EST_Tutorial
 			|| Type == ESchematicType::EST_MAM;
+		return bUpgradeType && UFGSchematic::GetCost(Schematic).Num() > 0;
 	}
 
 	static bool IsHubSchematic(TSubclassOf<UFGSchematic> Schematic)
