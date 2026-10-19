@@ -30,6 +30,23 @@ Die Mod ist C++-Code für den **Satisfactory Mod Loader (SML) 3.12+**. Zum Kompi
 
 > ⚠️ Der Code wurde gegen die aktuellen SML-/FactoryGame-Header geschrieben, aber noch **nicht kompiliert oder im Spiel getestet**. Beim ersten Bauen bitte Compiler-Fehler und das Log (`FactoryGame.log`, Suche nach `[TimingUp]`) prüfen.
 
+## Testmodus
+
+Startoption **`-TimingUpTest`** hinzufügen (Steam → Satisfactory → Eigenschaften → Startoptionen).
+Dann läuft der Timer **60-mal schneller** und das Overlay zeigt `[TESTMODUS x60]`.
+Die komplette Challenge (~23,6 h Timer) ist so in rund 24 Minuten durchgetestet.
+**Für die echte Aufnahme die Startoption wieder entfernen!** Und immer einen eigenen Test-Spielstand nehmen.
+
+Test-Checkliste:
+- [ ] Overlay erscheint oben mit Countdown
+- [ ] HUB ist gesperrt, bis „UPGRADE 1 FREI“ (grün) erscheint
+- [ ] Timer stoppt im Pausemenü
+- [ ] Nächster Countdown startet erst, wenn das freie Upgrade ausgegeben wurde
+- [ ] MAM-Forschung und Weltraumaufzug sind ohne freies Upgrade gesperrt
+- [ ] Festplatten / Alternativrezepte sind gesperrt
+- [ ] Nach Speichern + Neuladen stimmt der Stand
+- [ ] Nach Upgrade 30 läuft der End-Countdown, danach „CHALLENGE VORBEI!“
+
 ## Werte ändern
 
 In `Source/TimingUp/Public/TimingUpSubsystem.h`:

@@ -42,6 +42,11 @@ public:
 	static constexpr int32 MaxUpgrades = 30;
 	static constexpr float BaseWaitSeconds = 60.0f;
 	static constexpr float WaitFactor = 1.2f;
+	/** Speed-up when the game is started with the launch option -TimingUpTest */
+	static constexpr float TestModeTimeScale = 60.0f;
+
+	/** 1.0 normally, TestModeTimeScale when launched with -TimingUpTest */
+	static float GetTimeScale();
 
 	/** Returns the subsystem for the given world, or nullptr */
 	static ATimingUpSubsystem* Get(const UObject* WorldContext);

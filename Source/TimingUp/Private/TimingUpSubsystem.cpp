@@ -1,6 +1,8 @@
 #include "TimingUpSubsystem.h"
 
 #include "Engine/Engine.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 #include "Engine/GameViewportClient.h"
 #include "Engine/World.h"
 #include "Net/UnrealNetwork.h"
@@ -29,6 +31,12 @@ ATimingUpSubsystem* ATimingUpSubsystem::Get(const UObject* WorldContext)
 	if (!World) return nullptr;
 	USubsystemActorManager* Manager = World->GetSubsystem<USubsystemActorManager>();
 	return Manager ? Manager->GetSubsystemActor<ATimingUpSubsystem>() : nullptr;
+}
+
+float ATimingUpSubsystem::GetTimeScale()
+{
+	static const bool bTestMode = FParse::Param(FCommandLine::Get(), TEXT("TimingUpTest"));
+	return bTestMode ? TestModeTimeScale : 1.0f;
 }
 
 float ATimingUpSubsystem::GetWaitForUpgrade(int32 UpgradeNumber)
@@ -68,6 +76,9 @@ void ATimingUpSubsystem::Tick(float DeltaSeconds)
 	}
 
 	if (!HasAuthority()) return;
+
+	// Test mode: start the game with launch option -TimingUpTest -> timer runs 60x faster
+	DeltaSeconds *= GetTimeScale();
 
 	if (State == ETimingUpState::Finished) return;
 	ElapsedSeconds += DeltaSeconds;
@@ -127,6 +138,10 @@ static FString FormatTime(float Seconds)
 FText ATimingUpSubsystem::GetOverlayText() const
 {
 	FString Line1 = FString::Printf(TEXT("TIMINGUP!   Upgrades %d/%d   Spielzeit %s"), UpgradesUsed, MaxUpgrades, *FormatTime(ElapsedSeconds));
+	if (GetTimeScale() != 1.0f)
+	{
+		Line1 += FString::Printf(TEXT("   [TESTMODUS x%.0f]"), GetTimeScale());
+	}
 	FString Line2;
 	switch (State)
 	{
