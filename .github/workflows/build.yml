@@ -17,7 +17,8 @@ on:
       - ".github/workflows/build.yml"
 
 env:
-  SML_VERSION: v3.12.0
+  # Muss zur Engine- und Wwise-Version unten passen (beides wie im aktuellen SML-master-Build)
+  SML_VERSION: master
   WORK: /mnt/work
 
 jobs:
