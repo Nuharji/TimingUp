@@ -1,6 +1,6 @@
 # TimingUp! – Satisfactory-Mod (Novy Labs)
 
-Mod für die Let's-Play-Challenge **Satisfactory: TimingUp!** vom YouTube-Kanal [@NovyLabs](https://www.youtube.com/@NovyLabs).
+Mod für die **Satisfactory: TimingUp!**
 
 ## Regeln, die die Mod im Spiel durchsetzt
 
