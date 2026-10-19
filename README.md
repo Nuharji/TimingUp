@@ -1,0 +1,46 @@
+# TimingUp! – Satisfactory-Mod (Novy Labs)
+
+Mod für die Let's-Play-Challenge **Satisfactory: TimingUp!** vom YouTube-Kanal [@NovyLabs](https://www.youtube.com/@NovyLabs).
+
+## Regeln, die die Mod im Spiel durchsetzt
+
+| Regel | Umsetzung |
+|---|---|
+| Upgrade = HUB-Meilenstein (auch Tier 0), MAM-Forschung, Weltraumaufzug-Phase | wird beim Freischalten gezählt |
+| Max. 30 Upgrades | danach kein Upgrade mehr möglich |
+| Nur Spielzeit zählt | Timer läuft nur, wenn das Spiel nicht pausiert ist |
+| Erstes Upgrade nach 1 Minute, jede Wartezeit ×1,2 | `BaseWaitSeconds = 60`, `WaitFactor = 1.2` |
+| Timer zum nächsten Upgrade startet erst, wenn das freie Upgrade ausgegeben wurde | Timer pausiert im Zustand „Upgrade frei“ |
+| Ende, wenn die theoretische Zeit von Upgrade 31 erreicht ist | danach ist alles gesperrt, Anzeige „CHALLENGE VORBEI!“ |
+| Keine Alternativrezepte | Festplatten-Forschung und Alternativrezepte sind blockiert |
+
+Oben in der Bildschirmmitte zeigt ein Overlay Upgrades (x/30), Spielzeit und den Countdown an – praktisch auch für die Aufnahme.
+Der Fortschritt wird im Spielstand gespeichert.
+
+**Gesperrt, solange kein Upgrade frei ist:** Meilenstein im HUB auswählen und bezahlen, MAM-Forschung starten, in den Weltraumaufzug einzahlen.
+
+## Bauen
+
+Die Mod ist C++-Code für den **Satisfactory Mod Loader (SML) 3.12+**. Zum Kompilieren brauchst du die offizielle Modding-Umgebung (nur Windows):
+
+1. Anleitung „Getting Started“ auf <https://docs.ficsit.app> befolgen (Visual Studio 2022, Unreal Engine für Satisfactory-Modding, Starter-Projekt).
+2. Diesen Ordner nach `SatisfactoryModLoader/Mods/TimingUp` kopieren.
+3. Projektdateien neu generieren, im Editor mit **Alpakit** „TimingUp“ für *Windows* packen.
+4. Die fertige Mod landet im Satisfactory-Ordner unter `FactoryGame/Mods/TimingUp` (Alpakit kann sie direkt dorthin kopieren).
+
+> ⚠️ Der Code wurde gegen die aktuellen SML-/FactoryGame-Header geschrieben, aber noch **nicht kompiliert oder im Spiel getestet**. Beim ersten Bauen bitte Compiler-Fehler und das Log (`FactoryGame.log`, Suche nach `[TimingUp]`) prüfen.
+
+## Werte ändern
+
+In `Source/TimingUp/Public/TimingUpSubsystem.h`:
+
+```cpp
+static constexpr int32 MaxUpgrades = 30;
+static constexpr float BaseWaitSeconds = 60.0f;
+static constexpr float WaitFactor = 1.2f;
+```
+
+## Aufbau
+
+- `TimingUpSubsystem` – Timer, Zustand, Speichern, Overlay
+- `TimingUpModule` – startet das Subsystem in jeder Spielwelt und hängt sich per SML-Hooks in HUB, MAM und Weltraumaufzug

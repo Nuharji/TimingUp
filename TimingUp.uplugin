@@ -1,0 +1,28 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0.0",
+	"SemVersion": "1.0.0",
+	"FriendlyName": "TimingUp!",
+	"Description": "Novy Labs Challenge: Upgrades (HUB, MAM, Weltraumaufzug) werden nur nach Timer freigegeben. Die Wartezeit wächst jedes Mal um Faktor 1,2.",
+	"Category": "Modding",
+	"CreatedBy": "Novy Labs",
+	"CreatedByURL": "https://www.youtube.com/@NovyLabs",
+	"CanContainContent": false,
+	"IsBetaVersion": true,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "TimingUp",
+			"Type": "Runtime",
+			"LoadingPhase": "PostDefault"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "SML",
+			"Enabled": true,
+			"SemVersion": "^3.12.0"
+		}
+	]
+}
