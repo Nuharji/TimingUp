@@ -24,10 +24,10 @@ enum class ETimingUpState : uint8
  *
  * Rules:
  *  - An "upgrade" is: a HUB milestone (incl. tier 0), a MAM research, a space elevator phase.
- *  - At most MaxUpgrades (30) upgrades.
+ *  - At most N upgrades (setting, default 30).
  *  - Only game time counts (actors don't tick while the game is paused or loading).
- *  - The first upgrade becomes available after BaseWaitSeconds (60 s). Every following wait is
- *    WaitFactor (1.2) times longer.
+ *  - The first upgrade becomes available after the first wait time (setting, default 1 min).
+ *    Every following wait is "wait factor" (setting, default 1.2) times longer.
  *  - The countdown to the next upgrade only starts once the currently available upgrade was spent.
  *  - The challenge ends when the countdown of the theoretical upgrade 31 runs out.
  *  - Alternate recipes are forbidden (hard drive research and alternate schematics are blocked).
@@ -39,14 +39,14 @@ class TIMINGUP_API ATimingUpSubsystem : public AModSubsystem, public IFGSaveInte
 public:
 	ATimingUpSubsystem();
 
-	static constexpr int32 MaxUpgrades = 30;
-	static constexpr float BaseWaitSeconds = 60.0f;
-	static constexpr float WaitFactor = 1.2f;
 	/** Speed-up when the game is started with the launch option -TimingUpTest */
 	static constexpr float TestModeTimeScale = 60.0f;
 
-	/** 1.0 normally, TestModeTimeScale when launched with -TimingUpTest */
-	static float GetTimeScale();
+	/** 1.0 normally; faster with -TimingUpTest or the test-mode setting */
+	float GetTimeScale() const;
+
+	/** Max upgrades from the mod settings (default 30) */
+	int32 GetMaxUpgrades() const;
 
 	/** Returns the subsystem for the given world, or nullptr */
 	static ATimingUpSubsystem* Get(const UObject* WorldContext);
@@ -70,8 +70,8 @@ public:
 	FText GetOverlayText() const;
 	FSlateColor GetOverlayColor() const;
 
-	/** Wait time (seconds) before upgrade number N (1-based) */
-	static float GetWaitForUpgrade(int32 UpgradeNumber);
+	/** Wait time (seconds) before upgrade number N (1-based), from the mod settings */
+	float GetWaitForUpgrade(int32 UpgradeNumber) const;
 
 	/** Number of upgrades already spent */
 	UPROPERTY(SaveGame, Replicated)
@@ -83,7 +83,7 @@ public:
 
 	/** Remaining game time of the current countdown in seconds */
 	UPROPERTY(SaveGame, Replicated)
-	float RemainingSeconds = BaseWaitSeconds;
+	float RemainingSeconds = 60.0f;
 
 	/** Total game time since the challenge started */
 	UPROPERTY(SaveGame, Replicated)

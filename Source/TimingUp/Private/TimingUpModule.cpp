@@ -1,6 +1,8 @@
 #include "TimingUpModule.h"
 
 #include "TimingUpSubsystem.h"
+#include "TimingUpConfig.h"
+#include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "Patching/NativeHookManager.h"
 #include "Subsystem/SubsystemActorManager.h"
@@ -17,9 +19,19 @@ namespace TimingUp
 	 * Only schematics that actually cost something count: free "background unlock"
 	 * schematics that the game grants automatically alongside a milestone are ignored.
 	 */
-	static bool IsUpgradeSchematic(TSubclassOf<UFGSchematic> Schematic)
+	/** Tier 0 (HUB upgrades) is ignored by the challenge when "Tier 0 nicht zählen" is on */
+	static bool IsIgnoredTier0(const UObject* Ctx, TSubclassOf<UFGSchematic> Schematic)
 	{
-		if (!Schematic) return false;
+		if (!Schematic || !FTimingUpConfig::SkipTier0(Ctx)) return false;
+		const ESchematicType Type = UFGSchematic::GetType(Schematic);
+		// Only HUB schematics: MAM research also reports tech tier 0 and must still count
+		return Type == ESchematicType::EST_Tutorial
+			|| (Type == ESchematicType::EST_Milestone && UFGSchematic::GetTechTier(Schematic) == 0);
+	}
+
+	static bool IsUpgradeSchematic(const UObject* Ctx, TSubclassOf<UFGSchematic> Schematic)
+	{
+		if (!Schematic || IsIgnoredTier0(Ctx, Schematic)) return false;
 		const ESchematicType Type = UFGSchematic::GetType(Schematic);
 		const bool bUpgradeType = Type == ESchematicType::EST_Milestone
 			|| Type == ESchematicType::EST_Tutorial
@@ -27,17 +39,18 @@ namespace TimingUp
 		return bUpgradeType && UFGSchematic::GetCost(Schematic).Num() > 0;
 	}
 
-	static bool IsHubSchematic(TSubclassOf<UFGSchematic> Schematic)
+	/** HUB milestones that are subject to the timer */
+	static bool IsHubSchematic(const UObject* Ctx, TSubclassOf<UFGSchematic> Schematic)
 	{
-		if (!Schematic) return false;
+		if (!Schematic || IsIgnoredTier0(Ctx, Schematic)) return false;
 		const ESchematicType Type = UFGSchematic::GetType(Schematic);
 		return Type == ESchematicType::EST_Milestone || Type == ESchematicType::EST_Tutorial;
 	}
 
-	/** Alternate recipes are forbidden in the challenge */
-	static bool IsForbiddenSchematic(TSubclassOf<UFGSchematic> Schematic)
+	/** Alternate recipes are forbidden in the challenge (setting) */
+	static bool IsForbiddenSchematic(const UObject* Ctx, TSubclassOf<UFGSchematic> Schematic)
 	{
-		if (!Schematic) return false;
+		if (!Schematic || !FTimingUpConfig::BlockAlternates(Ctx)) return false;
 		const ESchematicType Type = UFGSchematic::GetType(Schematic);
 		return Type == ESchematicType::EST_Alternate || Type == ESchematicType::EST_HardDrive;
 	}
@@ -57,6 +70,10 @@ void FTimingUpModule::StartupModule()
 	{
 		UWorld* World = Params.World;
 		if (!World || !World->IsGameWorld()) return;
+
+		// Settings are registered as early as possible (main menu), so they show up under Mods
+		FTimingUpConfig::Register(World->GetGameInstance());
+
 		if (World->GetMapName().Contains(TEXT("MenuScene"))) return;
 
 		if (USubsystemActorManager* Manager = World->GetSubsystem<USubsystemActorManager>())
@@ -82,7 +99,7 @@ void FTimingUpModule::RegisterHooks()
 	SUBSCRIBE_METHOD(AFGSchematicManager::CanSetAsActiveSchematic,
 		[](TCallScope<bool(*)(AFGSchematicManager*, TSubclassOf<UFGSchematic>)>& Scope, AFGSchematicManager* Self, TSubclassOf<UFGSchematic> Schematic)
 		{
-			if ((IsHubSchematic(Schematic) && !MaySpend(Self)) || IsForbiddenSchematic(Schematic))
+			if ((IsHubSchematic(Self, Schematic) && !MaySpend(Self)) || IsForbiddenSchematic(Self, Schematic))
 			{
 				Scope.Override(false);
 			}
@@ -92,7 +109,7 @@ void FTimingUpModule::RegisterHooks()
 	SUBSCRIBE_METHOD(AFGSchematicManager::PayOffOnSchematic,
 		[](TCallScope<bool(*)(AFGSchematicManager*, TSubclassOf<UFGSchematic>, TArray<FItemAmount>&)>& Scope, AFGSchematicManager* Self, TSubclassOf<UFGSchematic> Schematic, TArray<FItemAmount>& Amount)
 		{
-			if (IsHubSchematic(Schematic) && !MaySpend(Self))
+			if (IsHubSchematic(Self, Schematic) && !MaySpend(Self))
 			{
 				Scope.Override(false);
 			}
@@ -102,12 +119,12 @@ void FTimingUpModule::RegisterHooks()
 	SUBSCRIBE_METHOD(AFGSchematicManager::GiveAccessToSchematic,
 		[](TCallScope<void(*)(AFGSchematicManager*, TSubclassOf<UFGSchematic>, AFGCharacterPlayer*, ESchematicUnlockFlags)>& Scope, AFGSchematicManager* Self, TSubclassOf<UFGSchematic> Schematic, AFGCharacterPlayer* Instigator, ESchematicUnlockFlags Flags)
 		{
-			if (IsForbiddenSchematic(Schematic))
+			if (IsForbiddenSchematic(Self, Schematic))
 			{
 				Scope.Cancel();
 				return;
 			}
-			if (IsUpgradeSchematic(Schematic) && !Self->IsSchematicPurchased(Schematic))
+			if (IsUpgradeSchematic(Self, Schematic) && !Self->IsSchematicPurchased(Schematic))
 			{
 				if (ATimingUpSubsystem* Sub = ATimingUpSubsystem::Get(Self))
 				{
@@ -120,7 +137,7 @@ void FTimingUpModule::RegisterHooks()
 	SUBSCRIBE_METHOD(AFGResearchManager::CanResearchBeInitiated,
 		[](TCallScope<bool(*)(const AFGResearchManager*, TSubclassOf<UFGSchematic>)>& Scope, const AFGResearchManager* Self, TSubclassOf<UFGSchematic> Schematic)
 		{
-			if (IsForbiddenSchematic(Schematic) || !MaySpend(Self))
+			if (IsForbiddenSchematic(Self, Schematic) || !MaySpend(Self))
 			{
 				Scope.Override(false);
 			}

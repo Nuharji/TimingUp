@@ -11,6 +11,8 @@
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Text/STextBlock.h"
+#include "Widgets/Layout/SConstraintCanvas.h"
+#include "TimingUpConfig.h"
 #include "Styling/CoreStyle.h"
 
 #define LOCTEXT_NAMESPACE "TimingUp"
@@ -33,15 +35,21 @@ ATimingUpSubsystem* ATimingUpSubsystem::Get(const UObject* WorldContext)
 	return Manager ? Manager->GetSubsystemActor<ATimingUpSubsystem>() : nullptr;
 }
 
-float ATimingUpSubsystem::GetTimeScale()
+float ATimingUpSubsystem::GetTimeScale() const
 {
+	// Launch option -TimingUpTest or the setting "Testmodus: Zeit-Beschleunigung"
 	static const bool bTestMode = FParse::Param(FCommandLine::Get(), TEXT("TimingUpTest"));
-	return bTestMode ? TestModeTimeScale : 1.0f;
+	return FMath::Max(bTestMode ? TestModeTimeScale : 1.0f, FTimingUpConfig::TimeScale(this));
 }
 
-float ATimingUpSubsystem::GetWaitForUpgrade(int32 UpgradeNumber)
+int32 ATimingUpSubsystem::GetMaxUpgrades() const
 {
-	return BaseWaitSeconds * FMath::Pow(WaitFactor, FMath::Max(0, UpgradeNumber - 1));
+	return FTimingUpConfig::MaxUpgrades(this);
+}
+
+float ATimingUpSubsystem::GetWaitForUpgrade(int32 UpgradeNumber) const
+{
+	return FTimingUpConfig::FirstWaitSeconds(this) * FMath::Pow(FTimingUpConfig::WaitFactor(this), FMath::Max(0, UpgradeNumber - 1));
 }
 
 void ATimingUpSubsystem::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -57,6 +65,11 @@ void ATimingUpSubsystem::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 void ATimingUpSubsystem::BeginPlay()
 {
 	Super::BeginPlay();
+	if (HasAuthority() && UpgradesUsed == 0 && CountdownFor == 1 && ElapsedSeconds == 0.0f)
+	{
+		// Fresh challenge: first countdown uses the configured wait time
+		RemainingSeconds = GetWaitForUpgrade(1);
+	}
 	AddOverlay();
 }
 
@@ -93,12 +106,12 @@ void ATimingUpSubsystem::Tick(float DeltaSeconds)
 	if (State == ETimingUpState::FinalCountdown)
 	{
 		State = ETimingUpState::Finished;
-		ShowMessage(TEXT("CHALLENGE VORBEI! Die Zeit von Upgrade 31 ist erreicht."), 30.0f);
+		ShowMessage(FString::Printf(TEXT("CHALLENGE VORBEI! Die Zeit von Upgrade %d ist erreicht."), GetMaxUpgrades() + 1), 30.0f);
 		return;
 	}
 
 	State = ETimingUpState::UpgradeAvailable;
-	ShowMessage(FString::Printf(TEXT("UPGRADE %d/%d FREI!"), CountdownFor, MaxUpgrades));
+	ShowMessage(FString::Printf(TEXT("UPGRADE %d/%d FREI!"), CountdownFor, GetMaxUpgrades()));
 
 	// Pay back an upgrade the game granted while none was available
 	if (Debt > 0)
@@ -123,10 +136,10 @@ void ATimingUpSubsystem::OnUpgradeSpent(const FString& What)
 	UpgradesUsed++;
 	CountdownFor = UpgradesUsed + 1;
 	RemainingSeconds = GetWaitForUpgrade(CountdownFor);
-	State = (UpgradesUsed >= MaxUpgrades) ? ETimingUpState::FinalCountdown : ETimingUpState::Waiting;
+	State = (UpgradesUsed >= GetMaxUpgrades()) ? ETimingUpState::FinalCountdown : ETimingUpState::Waiting;
 
-	UE_LOG(LogTemp, Log, TEXT("[TimingUp] Upgrade %d/%d benutzt: %s"), UpgradesUsed, MaxUpgrades, *What);
-	ShowMessage(FString::Printf(TEXT("Upgrade %d/%d benutzt: %s"), UpgradesUsed, MaxUpgrades, *What), 4.0f);
+	UE_LOG(LogTemp, Log, TEXT("[TimingUp] Upgrade %d/%d benutzt: %s"), UpgradesUsed, GetMaxUpgrades(), *What);
+	ShowMessage(FString::Printf(TEXT("Upgrade %d/%d benutzt: %s"), UpgradesUsed, GetMaxUpgrades(), *What), 4.0f);
 }
 
 static FString FormatTime(float Seconds)
@@ -137,7 +150,7 @@ static FString FormatTime(float Seconds)
 
 FText ATimingUpSubsystem::GetOverlayText() const
 {
-	FString Line1 = FString::Printf(TEXT("TIMINGUP!   Upgrades %d/%d   Spielzeit %s"), UpgradesUsed, MaxUpgrades, *FormatTime(ElapsedSeconds));
+	FString Line1 = FString::Printf(TEXT("TIMINGUP!   Upgrades %d/%d   Spielzeit %s"), UpgradesUsed, GetMaxUpgrades(), *FormatTime(ElapsedSeconds));
 	if (GetTimeScale() != 1.0f)
 	{
 		Line1 += FString::Printf(TEXT("   [TESTMODUS x%.0f]"), GetTimeScale());
@@ -188,13 +201,25 @@ void ATimingUpSubsystem::AddOverlay()
 	if (GetNetMode() == NM_DedicatedServer) return;
 
 	TWeakObjectPtr<ATimingUpSubsystem> WeakThis(this);
-	FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle("Bold", 18);
+
+	// Position (0..1 of the screen) and font size come from the mod settings and update live
+	auto Pos = [WeakThis]() -> FVector2D
+	{
+		return WeakThis.IsValid()
+			? FVector2D(FTimingUpConfig::OverlayX(WeakThis.Get()), FTimingUpConfig::OverlayY(WeakThis.Get()))
+			: FVector2D(0.5f, 0.02f);
+	};
 
 	OverlayWidget =
-		SNew(SBox)
-		.HAlign(HAlign_Center)
-		.VAlign(VAlign_Top)
-		.Padding(FMargin(0.f, 12.f, 0.f, 0.f))
+		SNew(SConstraintCanvas)
+		.Visibility_Lambda([WeakThis]()
+		{
+			return (WeakThis.IsValid() && FTimingUpConfig::ShowOverlay(WeakThis.Get())) ? EVisibility::HitTestInvisible : EVisibility::Collapsed;
+		})
+		+ SConstraintCanvas::Slot()
+		.Anchors_Lambda([Pos]() { const FVector2D P = Pos(); return FAnchors(P.X, P.Y); })
+		.Alignment_Lambda([Pos]() { return Pos(); })
+		.AutoSize(true)
 		[
 			SNew(SBorder)
 			.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
@@ -202,7 +227,11 @@ void ATimingUpSubsystem::AddOverlay()
 			.Padding(FMargin(14.f, 8.f))
 			[
 				SNew(STextBlock)
-				.Font(Font)
+				.Font_Lambda([WeakThis]()
+				{
+					const int32 Size = WeakThis.IsValid() ? FTimingUpConfig::OverlayFontSize(WeakThis.Get()) : 18;
+					return FCoreStyle::GetDefaultFontStyle("Bold", Size);
+				})
 				.Justification(ETextJustify::Center)
 				.ShadowOffset(FVector2D(2.f, 2.f))
 				.ShadowColorAndOpacity(FLinearColor(0.f, 0.f, 0.f, 0.9f))

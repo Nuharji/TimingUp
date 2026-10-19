@@ -66,15 +66,28 @@ Test-Checkliste:
 - [ ] Nach Speichern + Neuladen stimmt der Stand
 - [ ] Nach Upgrade 30 läuft der End-Countdown, danach „CHALLENGE VORBEI!“
 
+## Einstellungen im Spiel
+
+Hauptmenü → **Mods** → **TimingUp!** → Konfiguration. Änderungen gelten sofort.
+
+| Einstellung | Standard | Bedeutung |
+|---|---|---|
+| Anzeige einblenden | an | Overlay ein/aus |
+| Anzeige: Position links/rechts (%) | 50 | 0 = links, 50 = Mitte, 100 = rechts |
+| Anzeige: Position oben/unten (%) | 2 | 0 = oben, 100 = unten |
+| Anzeige: Schriftgröße | 18 | |
+| Maximale Upgrades | 30 | Ende = Countdown von Upgrade „Max + 1“ abgelaufen |
+| Erste Wartezeit (Minuten) | 1 | |
+| Wartezeit-Faktor | 1,2 | jede Wartezeit ×1,2 |
+| Tier 0 nicht zählen | an | HUB-Upgrades aus Tier 0 sind frei (Tipp: neuen Spielstand mit „Onboarding überspringen“ starten) |
+| Alternativrezepte sperren | an | Festplatten/Alternativrezepte gesperrt |
+| Testmodus: Zeit-Beschleunigung | 1 | z. B. 60 zum Testen – für Aufnahmen auf 1 lassen! |
+
+Gespeichert wird in `FactoryGame/Configs/TimingUp.cfg`.
+
 ## Werte ändern
 
-In `Source/TimingUp/Public/TimingUpSubsystem.h`:
-
-```cpp
-static constexpr int32 MaxUpgrades = 30;
-static constexpr float BaseWaitSeconds = 60.0f;
-static constexpr float WaitFactor = 1.2f;
-```
+Alle Challenge-Werte sind jetzt Einstellungen (siehe oben). Die Standardwerte stehen in `Source/TimingUp/Public/TimingUpConfig.h`.
 
 ## Aufbau
 
